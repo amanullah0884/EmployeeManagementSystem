@@ -1,4 +1,5 @@
 ﻿using EmployeeManagement.Domain.Models;
+using EmployeeManagement.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeManagement.Persistence.DbContext;
@@ -26,11 +27,11 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<Permission> Permissions => Set<Permission>();
 
-    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(AppDbContext).Assembly,
+            t => t != typeof(AuditLogConfiguration));
     }
 }

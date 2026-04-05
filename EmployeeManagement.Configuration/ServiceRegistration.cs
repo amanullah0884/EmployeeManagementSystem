@@ -7,6 +7,7 @@ using EmployeeManagement.Persistence.DbContext;
 using EmployeeManagement.Persistence.Logging;
 using EmployeeManagement.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +24,14 @@ public static class ServiceRegistration
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(connectionString));
 
+        var loggingConnection = configuration.GetConnectionString("LoggingConnection")
+            ?? throw new InvalidOperationException("Connection string 'LoggingConnection' (PostgreSQL) is not configured.");
+
+        services.AddDbContext<LoggingDbContext>(options =>
+            options.UseNpgsql(loggingConnection));
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IAuditTrailWriter, AuditTrailWriter>();
         services.AddScoped<IAuthenticationActivityLogger, AuthenticationActivityLogger>();
 

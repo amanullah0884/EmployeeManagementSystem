@@ -24,7 +24,10 @@ builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<LoggingDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("LoggingConnection")));
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -70,6 +73,8 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
+    var logDb = scope.ServiceProvider.GetRequiredService<LoggingDbContext>();
+    await logDb.Database.MigrateAsync();
     var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     await DbInitializer.SeedAsync(db, passwordHasher);
 }

@@ -7,9 +7,9 @@ namespace EmployeeManagement.Persistence.Repositories;
 
 public class AuditLogRepository : IAuditLogRepository
 {
-    private readonly AppDbContext _db;
+    private readonly LoggingDbContext _db;
 
-    public AuditLogRepository(AppDbContext db)
+    public AuditLogRepository(LoggingDbContext db)
     {
         _db = db;
     }
@@ -22,6 +22,4 @@ public class AuditLogRepository : IAuditLogRepository
             .Take(take)
             .ToListAsync(cancellationToken);
     }
-
-    public void Add(AuditLog entity) => _db.AuditLogs.Add(entity);
 }

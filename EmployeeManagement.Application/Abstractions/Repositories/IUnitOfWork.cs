@@ -18,7 +18,5 @@ public interface IUnitOfWork
 
     IPermissionRepository Permissions { get; }
 
-    IAuditLogRepository AuditLogs { get; }
-
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

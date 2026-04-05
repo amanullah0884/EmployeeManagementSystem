@@ -1,16 +1,16 @@
 using EmployeeManagement.Application.Abstractions;
-using EmployeeManagement.Application.Abstractions.Repositories;
 using EmployeeManagement.Domain.Models;
+using EmployeeManagement.Persistence.DbContext;
 
 namespace EmployeeManagement.Persistence.Audit;
 
 public class AuditTrailWriter : IAuditTrailWriter
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly LoggingDbContext _db;
 
-    public AuditTrailWriter(IUnitOfWork unitOfWork)
+    public AuditTrailWriter(LoggingDbContext db)
     {
-        _unitOfWork = unitOfWork;
+        _db = db;
     }
 
     public async Task WriteAsync(
@@ -24,7 +24,7 @@ public class AuditTrailWriter : IAuditTrailWriter
         string? correlationId,
         CancellationToken cancellationToken = default)
     {
-        _unitOfWork.AuditLogs.Add(new AuditLog
+        _db.AuditLogs.Add(new AuditLog
         {
             EventCategory = eventCategory,
             Action = action,
@@ -37,6 +37,6 @@ public class AuditTrailWriter : IAuditTrailWriter
             CreatedAtUtc = DateTime.UtcNow
         });
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
     }
 }

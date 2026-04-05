@@ -1,6 +1,5 @@
 using System.Security.Claims;
-using EmployeeManagement.Application.Abstractions.Repositories;
-using EmployeeManagement.Domain.Models;
+using EmployeeManagement.Application.Abstractions;
 
 namespace EmployeeManagement.WebAPI.Middleware;
 
@@ -30,25 +29,21 @@ public sealed class RequestAuditMiddleware
             return;
 
         using var scope = context.RequestServices.CreateScope();
-        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var writer = scope.ServiceProvider.GetRequiredService<IAuditTrailWriter>();
 
         var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
         var username = context.User.FindFirstValue(ClaimTypes.Name)
             ?? context.User.FindFirstValue(ClaimTypes.Email);
 
-        uow.AuditLogs.Add(new AuditLog
-        {
-            EventCategory = "Http",
-            UserId = int.TryParse(userId, out var id) ? id : null,
-            Username = username,
-            Action = $"{context.Request.Method} {context.Request.Path}{context.Request.QueryString}",
-            EntityName = "HttpRequest",
-            EntityId = null,
-            Details = $"StatusCode={context.Response.StatusCode}",
-            CorrelationId = context.TraceIdentifier,
-            CreatedAtUtc = DateTime.UtcNow
-        });
-
-        await uow.SaveChangesAsync(context.RequestAborted);
+        await writer.WriteAsync(
+            "Http",
+            $"{context.Request.Method} {context.Request.Path}{context.Request.QueryString}",
+            "HttpRequest",
+            null,
+            $"StatusCode={context.Response.StatusCode}",
+            int.TryParse(userId, out var id) ? id : null,
+            username,
+            context.TraceIdentifier,
+            context.RequestAborted);
     }
 }
